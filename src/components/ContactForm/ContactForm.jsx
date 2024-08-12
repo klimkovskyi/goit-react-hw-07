@@ -3,8 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import s from "./ContactForm.module.css";
 import { useDispatch } from "react-redux";
-import { nanoid } from "@reduxjs/toolkit";
-import { addContact } from "../../redux/contactsSlice";
+import { addContactThunk } from "../../redux/contactsOps";
 
 const ContactForm = () => {
   const dispatch = useDispatch();
@@ -14,9 +13,7 @@ const ContactForm = () => {
   };
 
   const handleAddContact = (data, actions) => {
-    dispatch(
-      addContact({ id: nanoid(), name: data.name, number: data.number })
-    );
+    dispatch(addContactThunk({ name: data.name, number: data.number }));
     actions.resetForm();
   };
 

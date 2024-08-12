@@ -1,27 +1,64 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, isAnyOf } from "@reduxjs/toolkit";
+import {
+  addContactThunk,
+  fetchContactsThunk,
+  deleteContactThunk,
+} from "./contactsOps";
 
 const initialState = {
-  items: [
-    { id: 7, name: "Andrii", number: "123-456-7890" },
-    { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-    { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-    { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-    { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-  ],
+  items: [],
+  loading: false,
+  error: null,
 };
 
 const slice = createSlice({
   name: "contacts",
   initialState,
-  reducers: {
-    deleteContact: (state, action) => {
-      state.items = state.items.filter(item => item.id !== action.payload);
-    },
-    addContact: (state, action) => {
-      state.items.push(action.payload);
-    },
+  extraReducers: builder => {
+    builder
+      .addCase(fetchContactsThunk.fulfilled, (state, action) => {
+        state.items = action.payload;
+      })
+      .addCase(addContactThunk.fulfilled, (state, action) => {
+        state.items.push(action.payload);
+      })
+      .addCase(deleteContactThunk.fulfilled, (state, action) => {
+        state.items = state.items.filter(item => item.id !== action.payload);
+      })
+
+      .addMatcher(
+        isAnyOf(
+          fetchContactsThunk.pending,
+          addContactThunk.pending,
+          deleteContactThunk.pending
+        ),
+        state => {
+          state.loading = true;
+          state.error = false;
+        }
+      )
+      .addMatcher(
+        isAnyOf(
+          fetchContactsThunk.rejected,
+          addContactThunk.rejected,
+          deleteContactThunk.rejected
+        ),
+        state => {
+          state.loading = false;
+          state.error = true;
+        }
+      )
+      .addMatcher(
+        isAnyOf(
+          fetchContactsThunk.fulfilled,
+          addContactThunk.fulfilled,
+          deleteContactThunk.fulfilled
+        ),
+        state => {
+          state.loading = false;
+        }
+      );
   },
 });
 
 export const contactsReduser = slice.reducer;
-export const { addContact, deleteContact } = slice.actions;
